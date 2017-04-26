@@ -11,7 +11,9 @@ var canvas = document.getElementById('canvas'),
     start = false,
     oldX, oldY, angle, dy, dx,
     level = 1,
-    friction = 0.75;
+    friction = 0.75,
+    boxes = [],
+    activeBox = createBox();
 
 var level_text = 'Level ';
 var speed_text = 'Speed ';
@@ -66,6 +68,21 @@ function drawObjects(){
   hole.x = getRandomArbitrary(canvas.width/2,canvas.width);
   hole.y = getRandomArbitrary(0,canvas.height);
   hole.draw(context);
+}
+
+function createBox () {
+        var box = new Box(Math.random() * 40 + 10, Math.random() * 40 + 10);
+        box.x = Math.random() * canvas.width;
+        boxes.push(box);
+        return box;
+}
+
+function drawBox (box) {
+  if (activeBox !== box && utils.intersects(activeBox, box)) {
+    activeBox.y = box.y - activeBox.height;
+    activeBox = createBox();
+  }
+  box.draw(context);
 }
 
 function checkBoundaries(){
