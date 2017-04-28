@@ -12,8 +12,8 @@ var canvas = document.getElementById('canvas'),
     oldX, oldY, angle, dy, dx,
     level = 1,
     friction = 0.75,
-    boxes = [],
-    activeBox = createBox();
+    axis='',
+    boxes = [];
 
 var level_text = 'Level ';
 var speed_text = 'Speed ';
@@ -56,41 +56,16 @@ canvas.addEventListener('mouseup', OnMouseUp, false);
               ball.draw(context);
               hole.draw(context);
             }
+            boxes.forEach(drawBoxes);
           }
         }
 }());
-
-function drawObjects(){
-  ball.x = getRandomArbitrary(0,canvas.width/2);
-  ball.y = getRandomArbitrary(0,canvas.height);
-  ball.draw(context);
-
-  hole.x = getRandomArbitrary(canvas.width/2,canvas.width);
-  hole.y = getRandomArbitrary(0,canvas.height);
-  hole.draw(context);
-}
-
-function createBox () {
-        var box = new Box(Math.random() * 40 + 10, Math.random() * 40 + 10);
-        box.x = Math.random() * canvas.width;
-        boxes.push(box);
-        return box;
-}
-
-function drawBox (box) {
-  if (activeBox !== box && utils.intersects(activeBox, box)) {
-    activeBox.y = box.y - activeBox.height;
-    activeBox = createBox();
-  }
-  box.draw(context);
-}
 
 function checkBoundaries(){
     var left = 0,
     right = canvas.width,
     top = 0,
     bottom = canvas.height;
-
 
   if (ball.x + ball.radius > right) {
       ball.x = (right - ball.radius);
@@ -115,9 +90,59 @@ function checkBoundaries(){
       vy *= friction;
     }
 
+    console.log(vx);
+    console.log(vy);
+
+    for(i=0;i<boxes.length;i++){
+      if(((ball.x + ball.radius) > boxes[i].x) && ((ball.x + ball.radius) < (boxes[i].x + boxes[i].width))){
+        ball.x = (boxes[i].x - ball.radius);
+        vx *= -1;
+      }else if(((ball.x - ball.radius) > boxes[i].x) && ((ball.x - ball.radius) < (boxes[i].x + boxes[i].width))){
+        ball.x = (boxes[i].x + ball.radius);
+        vx *= -1;
+      }
+    }
+
+    /*for(i=0;i<boxes.length;i++){
+      if(utils.containsPoint(boxes[i],ball.x,ball.y)){
+          if(((ball.x + ball.radius) > boxes[i].x) && ((ball.x + ball.radius) < (boxes[i].x + boxes[i].width))){
+            ball.x = (boxes[i].x - ball.radius);
+            vx *= -1;
+          }else if(((ball.x - ball.radius) > boxes[i].x) && ((ball.x - ball.radius) < (boxes[i].x + boxes[i].width))){
+            ball.x = (boxes[i].x + ball.radius);
+            vx *= -1;
+          }
+
+          if(((ball.y + ball.radius) > boxes[i].y) && ((ball.y + ball.radius) < (boxes[i].y + boxes[i].height))){
+            ball.y = (boxes[i].y - ball.radius);
+            vy *= -1;
+          }else if(((ball.y - ball.radius) > boxes[i].y) && ((ball.y - ball.radius) < (boxes[i].y + boxes[i].height))){
+            ball.y = (boxes[i].y + ball.radius);
+            vy *= -1;
+          }
+        
+        vx *= friction;
+        vy *= friction;
+      }
+
+      if(((ball.x + ball.radius) > boxes[i].x) && ((ball.x + ball.radius) > boxes[i].x)){
+        ball.x = (right - ball.radius);
+        vx *= -1;
+        vx *= friction;
+        vy *= friction;
+      }else if (ball.x - ball.radius < left) {
+        ball.x = (left + ball.radius);
+        vx *= -1;
+        vx *= friction;
+        vy *= friction;
+      }
+    }*/
+    
+
     ball.x += vx;
     ball.y += vy;
 }
+
 
 function OnMouseDown(e){
   isMouseDown = true;
@@ -131,7 +156,7 @@ function OnMouseDown(e){
   angle = Math.atan2(dy, dx);
   seta.rotation = Math.atan2(dy, dx); //radians
   seta.draw(context);
-
+  boxes.forEach(drawBoxes);
   canvas.addEventListener('mousemove', OnMouseMove, false);
 }
 
@@ -149,6 +174,7 @@ function OnMouseMove(e){
     seta.draw(context);
     drawBall(seta.x,seta.y);
     drawHole(hX,hY);
+    boxes.forEach(drawBoxes);
 }
 
 function OnMouseUp(){
@@ -160,13 +186,34 @@ function OnMouseUp(){
     canvas.removeEventListener('mousemove', OnMouseMove, false);
     canvas.removeEventListener('mousedown', OnMouseDown, false);
     canvas.removeEventListener('mouseup', OnMouseUp, false);
-//    window.requestAnimationFrame(OnMouseUp, canvas);
-    //context.clearRect(0, 0, canvas.width, canvas.height);
-
-    //checkBoundaries();
-
-//    ball.draw(context);
 };
+
+function drawObjects(){
+  ball.x = getRandomArbitrary(0,canvas.width/2);
+  ball.y = getRandomArbitrary(0,canvas.height);
+  ball.draw(context);
+
+  hole.x = getRandomArbitrary(canvas.width/2,canvas.width);
+  hole.y = getRandomArbitrary(0,canvas.height);
+  hole.draw(context);
+
+  createBoxes(level);
+}
+
+function createBoxes (level) {
+  for (i = 0; i < level; i++) { 
+    var box = new Box(Math.random() * 40 + 50, Math.random() * 40 + 50);
+    box.x = Math.random() * canvas.width;
+    box.y = Math.random() * canvas.height;
+    box.draw(context);
+    boxes.push(box);
+  }
+}
+
+function drawBoxes (box) {
+  box.draw(context);
+}
+
 
 function drawBall(x,y){
   ball.x = x;

@@ -4,6 +4,7 @@ function Ball (radius, color) {
   this.x = 0;
   this.y = 0;
   this.radius = radius;
+  this.diameter = radius*2;
   this.color = utils.parseColor(color);
   this.lineWidth = 2;
 }
