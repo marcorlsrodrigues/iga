@@ -90,58 +90,106 @@ function checkBoundaries(){
       vy *= friction;
     }
 
-    console.log(vx);
-    console.log(vy);
 
     for(i=0;i<boxes.length;i++){
-      if(((ball.x + ball.radius) > boxes[i].x) && ((ball.x + ball.radius) < (boxes[i].x + boxes[i].width))){
-        ball.x = (boxes[i].x - ball.radius);
-        vx *= -1;
-      }else if(((ball.x - ball.radius) > boxes[i].x) && ((ball.x - ball.radius) < (boxes[i].x + boxes[i].width))){
-        ball.x = (boxes[i].x + ball.radius);
-        vx *= -1;
+
+      var res = bounces (boxes[i]);
+
+      if(res.bounce){
+        if(res.x != 0){
+          console.log(res);
+          console.log('vx ' + vx);
+          
+          if(Math.abs(vx)>5){
+            vx *= friction;            
+          }
+          
+          vx *= -1;
+          //vx *= friction;
+          //vy *= friction;
+        }
+        if(res.y != 0){
+          console.log(res);
+          console.log('vy ' + vy);
+          
+          if(Math.abs(vy) > 5){
+            vy *= friction;
+          }
+          vy *= -1;
+          //vx *= friction;
+          //vy *= friction;
+        }
       }
     }
-
-    /*for(i=0;i<boxes.length;i++){
-      if(utils.containsPoint(boxes[i],ball.x,ball.y)){
-          if(((ball.x + ball.radius) > boxes[i].x) && ((ball.x + ball.radius) < (boxes[i].x + boxes[i].width))){
-            ball.x = (boxes[i].x - ball.radius);
-            vx *= -1;
-          }else if(((ball.x - ball.radius) > boxes[i].x) && ((ball.x - ball.radius) < (boxes[i].x + boxes[i].width))){
-            ball.x = (boxes[i].x + ball.radius);
-            vx *= -1;
-          }
-
-          if(((ball.y + ball.radius) > boxes[i].y) && ((ball.y + ball.radius) < (boxes[i].y + boxes[i].height))){
-            ball.y = (boxes[i].y - ball.radius);
-            vy *= -1;
-          }else if(((ball.y - ball.radius) > boxes[i].y) && ((ball.y - ball.radius) < (boxes[i].y + boxes[i].height))){
-            ball.y = (boxes[i].y + ball.radius);
-            vy *= -1;
-          }
-        
-        vx *= friction;
-        vy *= friction;
-      }
-
-      if(((ball.x + ball.radius) > boxes[i].x) && ((ball.x + ball.radius) > boxes[i].x)){
-        ball.x = (right - ball.radius);
-        vx *= -1;
-        vx *= friction;
-        vy *= friction;
-      }else if (ball.x - ball.radius < left) {
-        ball.x = (left + ball.radius);
-        vx *= -1;
-        vx *= friction;
-        vy *= friction;
-      }
-    }*/
     
-
     ball.x += vx;
     ball.y += vy;
 }
+
+
+function ballBoxColliding(box) {
+    var distX = Math.abs(ball.x - box.x - box.width / 2);
+    var distY = Math.abs(ball.y - box.y - box.height / 2);
+    
+    if (distX > (box.width / 2 + ball.radius)) {
+        return false;
+    }
+    if (distY > (box.height / 2 + ball.radius)) {
+        return false;
+    }
+
+    if (distX <= (box.width / 2)) {
+        return 'x';
+    }
+    if (distY <= (box.height / 2)) {
+        return 'y';
+    }
+
+    /*var dx = distX - box.height / 2;
+    var dy = distY - box.height / 2;
+    return (dx * dx + dy * dy <= (ball.radius * ball.radius));*/
+}
+
+  function bounces (box)
+  {
+        // compute a center-to-center vector
+    var half = { x: box.width/2, y: box.height/2 };
+        var center = {
+            x: ball.x - (box.x+half.x),
+            y: ball.y - (box.y+half.y)};
+            
+        // check circle position inside the rectangle quadrant
+        var side = {
+            x: Math.abs (center.x) - half.x,
+            y: Math.abs (center.y) - half.y};
+        //console.log ("center "+center.x+" "+center.y+" side "+side.x+" "+side.y);           
+        if (side.x >  ball.radius || side.y >  ball.radius) // outside
+        return { bounce: false }; 
+        if (side.x < -ball.radius && side.y < -ball.radius) // inside
+        return { bounce: false }; 
+        if (side.x < 0 || side.y < 0) // intersects side or corner
+        {
+          var dx = 0, dy = 0;
+            if (Math.abs (side.x) < ball.radius && side.y < 0)
+          {
+              dx = center.x*side.x < 0 ? -1 : 1;
+          }
+            else if (Math.abs (side.y) < ball.radius && side.x < 0)
+          {
+              dy = center.y*side.y < 0 ? -1 : 1;
+          }
+          
+                return { bounce: true, x:dx, y:dy };
+        }
+        // circle is near the corner
+        bounce = side.x*side.x + side.y*side.y  < ball.radius*ball.radius;
+      if (!bounce) return { bounce:false }
+      var norm = Math.sqrt (side.x*side.x+side.y*side.y);
+      var dx = center.x < 0 ? -1 : 1;
+      var dy = center.y < 0 ? -1 : 1;
+      return { bounce:true, x: dx*side.x/norm, y: dy*side.y/norm };
+    
+    }
 
 
 function OnMouseDown(e){
