@@ -1,7 +1,7 @@
 function Box (width, height, color) {
   if (width === undefined) { width = 50; }
   if (height === undefined) { height = 50; }
-  if (color === undefined) { color = "#ff0000"; }
+  if (color === undefined) { color = "blue"; }
   this.x = 0;
   this.x = 0;
   this.y = 0;
