@@ -178,27 +178,12 @@ Math.ease = function (t, b, c, d) {
   return -c * t*(t-2) + b;
 };
 
-function drawProgressBar(){
-  context.rect(canvas.width/2, canvas.height-20, 300, 20);
-    
-  if(w >= (canvas.width/2) - 10){
-    context.fillStyle = 'red';
-  }else{
-    context.fillStyle = 'orange';
-  }
-  context.fillRect(canvas.width/2,canvas.height-20,w,30);
- 
-  context.fillStyle = '#000';
 
-  context.lastValue = canvas.width/2;
-  
-  w = Math.ease(1,w,(canvas.width/2) - Math.floor(w),60);
-}
 
 
 function bounces (box)
 {
-      // compute a center-to-center vector
+  // compute a center-to-center vector
   var half = { x: box.width/2, y: box.height/2 };
       var center = {
           x: ball.x - (box.x+half.x),
@@ -228,13 +213,30 @@ function bounces (box)
               return { bounce: true, x:dx, y:dy };
       }
       // circle is near the corner
-      bounce = side.x*side.x + side.y*side.y  < ball.radius*ball.radius;
+    bounce = side.x*side.x + side.y*side.y  < ball.radius*ball.radius;
     if (!bounce) return { bounce:false }
     var norm = Math.sqrt (side.x*side.x+side.y*side.y);
     var dx = center.x < 0 ? -1 : 1;
     var dy = center.y < 0 ? -1 : 1;
     return { bounce:true, x: dx*side.x/norm, y: dy*side.y/norm };
   
+}
+
+function drawProgressBar(){
+  context.rect(canvas.width/2, canvas.height-20, 300, 20);
+    
+  if(w >= (canvas.width/2) - 10){
+    context.fillStyle = 'red';
+  }else{
+    context.fillStyle = 'orange';
+  }
+  context.fillRect(canvas.width/2,canvas.height-20,w,30);
+ 
+  context.fillStyle = '#000';
+
+  context.lastValue = canvas.width/2;
+  
+  w = Math.ease(1,w,(canvas.width/2) - Math.floor(w),60);
 }
 
 

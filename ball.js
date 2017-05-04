@@ -6,7 +6,7 @@ function Ball (radius, color) {
   this.radius = radius;
   this.diameter = radius*2;
   this.color = utils.parseColor(color);
-  this.lineWidth = 2;
+  this.lineWidth = 0.5;
 }
 
 Ball.prototype.draw = function (context) {
