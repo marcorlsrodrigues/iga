@@ -7,6 +7,7 @@ var canvas = document.getElementById('canvas'),
     vx = 1,
     vy = 1,
     speed = 0.01,
+    speed_aux = 0.30,
     isMouseDown = false,
     start = false,
     oldX, oldY, angle, dy, dx,
@@ -28,7 +29,7 @@ initialize();
 (function drawFrame () {
         animation = window.requestAnimationFrame(drawFrame, canvas);
         if (isMouseDown) {
-          speed = speed + 0.15;
+          speed = speed + speed_aux;
           drawProgressBar();
         } else {
           if(start){
@@ -48,7 +49,11 @@ initialize();
               context.clearRect(0, 0, canvas.width, canvas.height);
               boxes = [];
               w=0;
-              level += 1;
+              if(level+1 > 5){
+                level = 1;
+              }else{
+                level += 1;
+              }
               start=false;
               initialize();
             }else{
@@ -79,22 +84,26 @@ function addMouseUpDown(){
 }
 
 function checkStopBall(){
-    if(vx < 0.1 && vx > 0){
+    if(vx < 0.05 && vx > 0){
       vx = 0;
       vy = 0;
+      speed=0.01;
     }
-    if(vy < 0.1 && vy > 0){
+    if(vy < 0.05 && vy > 0){
       vy = 0;
       vx = 0;
+      speed=0.01;
     }
 
-    if(vx > -0.1 && vx < 0){
+    if(vx > -0.05 && vx < 0){
       vy = 0;
       vx = 0;
+      speed=0.01;
     }
-    if(vy > -0.1 && vy < 0){
+    if(vy > -0.05 && vy < 0){
       vy = 0;
       vx = 0;
+      speed=0.01;
     }
 
     if(vx == 0 || vy == 0){
@@ -286,6 +295,9 @@ function OnMouseUp(){
 };
 
 function drawObjects(){
+  var dist_ball_hole_x = 0,
+    dist_ball_hole_y = 0;
+
   ball.x = getRandomArbitrary(0,canvas.width/2);
   ball.y = getRandomArbitrary(0,canvas.height);
 
@@ -303,9 +315,11 @@ function drawObjects(){
 
   ball.draw(context);
 
+  //atribui valores random para hole x e y
   hole.x = getRandomArbitrary(canvas.width/2,canvas.width);
   hole.y = getRandomArbitrary(0,canvas.height);
 
+  //soma sempre o raiu do hole para evitar que fique metade fora do canvas
   if(hole.x <= canvas.width/2){
     hole.x += hole.radius;
   }else{
@@ -318,6 +332,34 @@ function drawObjects(){
     hole.y -= hole.radius;
   }
 
+  //se distância do centro da ball e hole for menor que a soma dos raios, 
+  //então calcula outro ponto para o hole para que não se interceptem
+  //TO DO: implementar mesma logica para a criação das boxes
+  dist_ball_hole_x = Math.abs(hole.x-ball.x);
+  dist_ball_hole_y = Math.abs(hole.y-ball.y);
+
+  while((dist_ball_hole_x || dist_ball_hole_y) <(hole.radius + ball.radius)){
+      //atribui valores random para hole x e y
+      hole.x = getRandomArbitrary(canvas.width/2,canvas.width);
+      hole.y = getRandomArbitrary(0,canvas.height);
+
+      //soma sempre o raiu do hole para evitar que fique metade fora do canvas
+      if(hole.x <= canvas.width/2){
+        hole.x += hole.radius;
+      }else{
+        hole.x -= hole.radius;
+      }
+
+      if(hole.y <= canvas.height/2){
+        hole.y += hole.radius;
+      }else{
+        hole.y -= hole.radius;
+      }
+
+      dist_ball_hole_x= Math.abs(hole.x-ball.x);
+      dist_ball_hole_y = Math.abs(hole.y-ball.y);
+  }
+  
   hole.draw(context);
 
   createBoxes(level);
