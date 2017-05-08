@@ -17,7 +17,11 @@ var canvas = document.getElementById('canvas'),
     axis='',
     boxes = [],
     animation,
-    distVictory = 16;
+    distVictory = 16,
+    lineForce = 1,
+    lineForceStep = 1,
+    shots = 0,
+    points = 0.0;
 
 var w = 0;
 var level_text = 'Level ';
@@ -30,13 +34,22 @@ initialize();
         animation = window.requestAnimationFrame(drawFrame, canvas);
         if (isMouseDown) {
           speed = speed + speed_aux;
-          drawProgressBar();
+          if(lineForce <= 150){
+            lineForce += lineForceStep;
+          }
+          context.moveTo(ball.x, ball.y);
+          context.lineTo(ball.x - lineForce * Math.cos(angle), ball.y - lineForce * Math.sin(angle));
+          context.stroke();
+          //drawProgressBar();
         } else {
           if(start){
             var dx = hole.x - ball.x,
                 dy = hole.y - ball.y,
                 dist = Math.sqrt(dx * dx + dy * dy);
-
+                shots += 1;
+                points = level/shots;
+                points = Math.round(points * 100) / 100;
+                console.log(points);
             checkStopBall();
 
             //acertou no buraco
@@ -45,10 +58,10 @@ initialize();
               ball.y = hole.y;
               vx = 0;
               vy = 0;
-
+              lineForce = 1;
+              speed = 0.01;
               context.clearRect(0, 0, canvas.width, canvas.height);
               boxes = [];
-              w=0;
               if(level+1 > 5){
                 level = 1;
               }else{
@@ -58,14 +71,27 @@ initialize();
               initialize();
             }else{
               context.clearRect(0, 0, canvas.width, canvas.height);
-              w=0;
+              
               checkBoundaries();
+              boxCollision();
+    
+              vx *= gravity;
+              vy *= gravity;
+              
+              ball.x += vx;
+              ball.y += vy;
+
               ball.draw(context);
               hole.draw(context);
             }
             boxes.forEach(drawBoxes);
           }else{
-            w=0;
+            lineForce = 1;
+            speed = 0.01;
+            shots += 1;
+            points = level/shots;
+            points = Math.round(points * 100) / 100;
+            console.log(points);
             addMouseUpDown();
           }
         }
@@ -139,25 +165,17 @@ function checkBoundaries(){
       vx *= friction;
       vy *= friction;
     }
-
-    boxCollision();
-    
-    vx *= gravity;
-    vy *= gravity;
-    
-    ball.x += vx;
-    ball.y += vy;
 }
 
 function boxCollision(){
     for(i=0;i<boxes.length;i++){
 
         var res = bounces (boxes[i]);
-
+        console.log(res);
+        console.log('vx ' + vx);
+        console.log('vy ' + vy);
         if(res.bounce){
           if(res.x != 0){
-            console.log(res);
-            console.log('vx ' + vx);
             
             if(Math.abs(vx)>5){
               vx *= friction;            
@@ -168,9 +186,6 @@ function boxCollision(){
             //vy *= friction;
           }
           if(res.y != 0){
-            console.log(res);
-            console.log('vy ' + vy);
-            
             if(Math.abs(vy) > 5){
               vy *= friction;
             }
@@ -259,7 +274,8 @@ function OnMouseDown(e){
   dx = loc.x - seta.x;
   dy = loc.y - seta.y;
   angle = Math.atan2(dy, dx);
-  seta.rotation = Math.atan2(dy, dx); //radians
+  angleLineForce = angle * 180/Math.PI;
+  seta.rotation = Math.atan2(dy, dx);
   seta.draw(context);
   boxes.forEach(drawBoxes);
 
@@ -292,7 +308,8 @@ function OnMouseUp(){
     canvas.removeEventListener('mousemove', OnMouseMove, false);
     canvas.removeEventListener('mousedown', OnMouseDown, false);
     canvas.removeEventListener('mouseup', OnMouseUp, false);
-};
+}
+
 
 function drawObjects(){
   var dist_ball_hole_x = 0,
