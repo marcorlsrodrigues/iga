@@ -13,7 +13,7 @@ function Box (width, height, color) {
   this.scaleX = 1;
   this.scaleY = 1;
   this.color = utils.parseColor(color);
-  this.lineWidth = 0;
+  this.lineWidth = 0.5;
 }
 
 Box.prototype.draw = function (context) {

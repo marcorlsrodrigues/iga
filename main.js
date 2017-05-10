@@ -17,13 +17,12 @@ var canvas = document.getElementById('canvas'),
     axis='',
     boxes = [],
     animation,
-    distVictory = 16,
+    distVictory = 12,
     lineForce = 1,
     lineForceStep = 1,
     shots = 0,
     points = 0.0;
 
-var w = 0;
 var level_text = 'Level ';
 canvas.style.background = '#66ff66';
 
@@ -42,16 +41,12 @@ initialize();
           context.moveTo(ball.x, ball.y);
           context.lineTo(ball.x - lineForce * Math.cos(angle), ball.y - lineForce * Math.sin(angle));
           context.stroke();
-          //drawProgressBar();
         } else {
           if(start){
             var dx = hole.x - ball.x,
                 dy = hole.y - ball.y,
                 dist = Math.sqrt(dx * dx + dy * dy);
-                shots += 1;
-                points = level/shots;
-                points = Math.round(points * 100) / 100;
-                console.log('Points: ' + points);
+
             checkStopBall();
 
             //acertou no buraco
@@ -62,10 +57,14 @@ initialize();
               vy = 0;
               lineForce = 1;
               speed = 0.01;
-              context.clearRect(0, 0, canvas.width, canvas.height);
               boxes = [];
+
+              context.clearRect(0, 0, canvas.width, canvas.height);
+              
               if(level+1 > 5){
                 level = 1;
+                points = 0;
+                shots = 0;
               }else{
                 level += 1;
               }
@@ -90,13 +89,11 @@ initialize();
           }else{
             lineForce = 1;
             speed = 0.01;
-            shots += 1;
-            points = level/shots;
-            points = Math.round(points * 100) / 100;
-            console.log(points);
             addMouseUpDown();
           }
         }
+
+        drawText();
 }());
 
 
@@ -172,9 +169,9 @@ function checkBoundaries(){
 function boxCollision(){
     for(i=0;i<boxes.length;i++){
         var res = bounces (boxes[i]);
-        console.log(res);
+        /*console.log(res);
         console.log('vx ' + vx);
-        console.log('vy ' + vy);
+        console.log('vy ' + vy);*/
         if(res.bounce){
           var normal_len = res.x*vx + res.y*vy;
           var normal = { x: res.x*normal_len, y: res.y*normal_len };
@@ -190,14 +187,6 @@ function boxCollision(){
         }
     }
 }
-
-Math.ease = function (t, b, c, d) {
-  t /= d;
-  return -c * t*(t-2) + b;
-};
-
-
-
 
 function bounces (box)
 {
@@ -238,23 +227,6 @@ function bounces (box)
     var dy = center.y < 0 ? -1 : 1;
     return { bounce:true, x: dx*side.x/norm, y: dy*side.y/norm };
     
-}
-
-function drawProgressBar(){
-  context.rect(canvas.width/2, canvas.height-20, 300, 20);
-    
-  if(w >= (canvas.width/2) - 10){
-    context.fillStyle = 'red';
-  }else{
-    context.fillStyle = 'orange';
-  }
-  context.fillRect(canvas.width/2,canvas.height-20,w,30);
- 
-  context.fillStyle = '#000';
-
-  context.lastValue = canvas.width/2;
-  
-  w = Math.ease(1,w,(canvas.width/2) - Math.floor(w),60);
 }
 
 
@@ -298,7 +270,14 @@ function OnMouseUp(){
     start = true;
     vx = Math.cos(angle) * speed;
     vy = Math.sin(angle) * speed;
-    
+
+    shots += 1;
+    points = (level/shots)*100;
+    console.log('level: '+level);
+    console.log('shots: ' +shots);
+
+    points = Math.round(points * 100) / 100;
+    console.log('Points: ' + points);
     canvas.removeEventListener('mousemove', OnMouseMove, false);
     canvas.removeEventListener('mousedown', OnMouseDown, false);
     canvas.removeEventListener('mouseup', OnMouseUp, false);
@@ -377,7 +356,9 @@ function drawObjects(){
 }
 
 function createBoxes (level) {
+  var checkBoxOverlap;
   for (i = 0; i < level; i++) { 
+    checkBoxOverlap = false;
     var box = new Box(Math.random() * 40 + 50, Math.random() * 40 + 50);
     box.x = Math.random() * canvas.width;
     box.y = Math.random() * canvas.height;
@@ -394,10 +375,16 @@ function createBoxes (level) {
       box.y -= box.height;
     }
 
+    for(var j = 0;j<boxes.length-1;j++){
+      if(utils.intersects(box,boxes[j])){
+        if(checkBoxOverlap){
+          i = i-1;
+        }
+      }
+    } 
+
     box.draw(context);
     boxes.push(box);
-    console.log('box.width: ' + box.width);
-    console.log('box.height: ' + box.height);
   }
 }
 
@@ -416,4 +403,11 @@ function drawHole(x,y){
   hole.x = x;
   hole.y = y;
   hole.draw(context); 
+}
+
+
+function drawText(){
+  context.strokeStyle='black';
+  context.font="18px Arial";
+  context.fillText("Points: " + points + "%",5,canvas.height-5);
 }
