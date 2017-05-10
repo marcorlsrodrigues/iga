@@ -29,11 +29,13 @@ canvas.style.background = '#66ff66';
 
 initialize();
 
-
 (function drawFrame () {
         animation = window.requestAnimationFrame(drawFrame, canvas);
         if (isMouseDown) {
-          speed = speed + speed_aux;
+          if(speed < 7){
+            speed = speed + speed_aux;
+          }
+
           if(lineForce <= 150){
             lineForce += lineForceStep;
           }
@@ -49,7 +51,7 @@ initialize();
                 shots += 1;
                 points = level/shots;
                 points = Math.round(points * 100) / 100;
-                console.log(points);
+                console.log('Points: ' + points);
             checkStopBall();
 
             //acertou no buraco
@@ -71,13 +73,13 @@ initialize();
               initialize();
             }else{
               context.clearRect(0, 0, canvas.width, canvas.height);
-              
-              checkBoundaries();
-              boxCollision();
-    
+
               vx *= gravity;
               vy *= gravity;
               
+              checkBoundaries();
+              boxCollision();
+
               ball.x += vx;
               ball.y += vy;
 
@@ -169,32 +171,24 @@ function checkBoundaries(){
 
 function boxCollision(){
     for(i=0;i<boxes.length;i++){
-
         var res = bounces (boxes[i]);
         console.log(res);
         console.log('vx ' + vx);
         console.log('vy ' + vy);
         if(res.bounce){
-          if(res.x != 0){
-            
-            if(Math.abs(vx)>5){
-              vx *= friction;            
-            }
-            
-            vx *= -1;
-            //vx *= friction;
-            //vy *= friction;
+          var normal_len = res.x*vx + res.y*vy;
+          var normal = { x: res.x*normal_len, y: res.y*normal_len };
+          vx = vx-2*normal.x;
+          vy = vy-2*normal.y;
+          
+          if(Math.abs(vx)>5){
+            vx *= friction;            
           }
-          if(res.y != 0){
-            if(Math.abs(vy) > 5){
-              vy *= friction;
-            }
-            vy *= -1;
-            //vx *= friction;
-            //vy *= friction;
+          if(Math.abs(vy)>5){
+            vy *= friction;
           }
         }
-      }
+    }
 }
 
 Math.ease = function (t, b, c, d) {
@@ -207,43 +201,43 @@ Math.ease = function (t, b, c, d) {
 
 function bounces (box)
 {
-  // compute a center-to-center vector
-  var half = { x: box.width/2, y: box.height/2 };
-      var center = {
-          x: ball.x - (box.x+half.x),
-          y: ball.y - (box.y+half.y)};
-          
-      // check circle position inside the rectangle quadrant
-      var side = {
-          x: Math.abs (center.x) - half.x,
-          y: Math.abs (center.y) - half.y};
-      //console.log ("center "+center.x+" "+center.y+" side "+side.x+" "+side.y);           
-      if (side.x >  ball.radius || side.y >  ball.radius) // outside
-      return { bounce: false }; 
-      if (side.x < -ball.radius && side.y < -ball.radius) // inside
-      return { bounce: false }; 
-      if (side.x < 0 || side.y < 0) // intersects side or corner
+        // compute a center-to-center vector
+    var half = { x: box.width/2, y: box.height/2 };
+        var center = {
+            x: (ball.x) - (box.x+half.x),
+            y: (ball.y) - (box.y+half.y)};
+            
+        // check circle position inside the rectangle quadrant
+        var side = {
+            x: Math.abs (center.x) - half.x,
+            y: Math.abs (center.y) - half.y};
+ //console.log ("center "+center.x+" "+center.y+" side "+side.x+" "+side.y);           
+        if (side.x >  ball.radius || side.y >  ball.radius) // outside
+        return { bounce: false }; 
+        /*if (side.x < -ball.radius && side.y < -ball.radius) // inside
+        return { bounce: false }; */
+    if (side.x < 0 || side.y < 0) // intersects side or corner
+    {
+      var dx = 0, dy = 0;
+        if (Math.abs (side.x) < ball.radius && side.y < 0)
       {
-        var dx = 0, dy = 0;
-          if (Math.abs (side.x) < ball.radius && side.y < 0)
-        {
-            dx = center.x*side.x < 0 ? -1 : 1;
-        }
-          else if (Math.abs (side.y) < ball.radius && side.x < 0)
-        {
-            dy = center.y*side.y < 0 ? -1 : 1;
-        }
-        
-              return { bounce: true, x:dx, y:dy };
+          dx = center.x*side.x < 0 ? -1 : 1;
       }
-      // circle is near the corner
-    bounce = side.x*side.x + side.y*side.y  < ball.radius*ball.radius;
+        else if (Math.abs (side.y) < ball.radius && side.x < 0)
+      {
+          dy = center.y*side.y < 0 ? -1 : 1;
+      }
+      
+            return { bounce: true, x:dx, y:dy };
+    }
+        // circle is near the corner
+        bounce = side.x*side.x + side.y*side.y  < ball.radius*ball.radius;
     if (!bounce) return { bounce:false }
     var norm = Math.sqrt (side.x*side.x+side.y*side.y);
     var dx = center.x < 0 ? -1 : 1;
     var dy = center.y < 0 ? -1 : 1;
     return { bounce:true, x: dx*side.x/norm, y: dy*side.y/norm };
-  
+    
 }
 
 function drawProgressBar(){
@@ -402,6 +396,8 @@ function createBoxes (level) {
 
     box.draw(context);
     boxes.push(box);
+    console.log('box.width: ' + box.width);
+    console.log('box.height: ' + box.height);
   }
 }
 
@@ -421,5 +417,3 @@ function drawHole(x,y){
   hole.y = y;
   hole.draw(context); 
 }
-
-

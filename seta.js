@@ -1,7 +1,7 @@
 function Seta () {
   this.x = 0;
   this.y = 0;
-  this.color = "#ffff00";
+  this.color = "black";
   this.rotation = 0;
 }
 
@@ -11,7 +11,7 @@ Seta.prototype.draw = function (context) {
   context.rotate(this.rotation);
 
   context.lineWidth = 0.5;
-  context.fillStyle = this.color;
+  context.fillStyle = "rgba(255, 255, 255, 0.5)";
   context.beginPath();
   context.moveTo(-15, -7);
   context.lineTo(0, -7);
