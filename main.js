@@ -17,14 +17,17 @@ var canvas = document.getElementById('canvas'),
     axis='',
     boxes = [],
     animation,
+    bounce = -0.6,
     distVictory = 12,
     lineForce = 1,
     lineForceStep = 1,
     shots = 0,
     points = 0.0;
 
-var level_text = 'Level ';
 canvas.style.background = '#66ff66';
+
+context.strokeStyle='black';
+context.font="18px Arial";
 
 initialize();
 
@@ -75,8 +78,14 @@ initialize();
 
               vx *= gravity;
               vy *= gravity;
+              speed *= gravity;
               
               checkBoundaries();
+
+              console.log('vx: '+vx);
+              console.log('vy: '+vy);
+              console.log('speed: '+speed);
+
               boxCollision();
 
               ball.x += vx;
@@ -86,20 +95,20 @@ initialize();
               hole.draw(context);
             }
             boxes.forEach(drawBoxes);
+            drawText();
           }else{
             lineForce = 1;
             speed = 0.01;
             addMouseUpDown();
           }
         }
-
-        drawText();
 }());
 
 
 function initialize(){
   drawObjects();
   addMouseUpDown();
+  drawText();
 }
 
 
@@ -109,29 +118,29 @@ function addMouseUpDown(){
 }
 
 function checkStopBall(){
-    if(vx < 0.05 && vx > 0){
+    if(vx < 0.05 && vx > 0 && speed < 0.5){
       vx = 0;
       vy = 0;
       speed=0.01;
     }
-    if(vy < 0.05 && vy > 0){
-      vy = 0;
-      vx = 0;
-      speed=0.01;
-    }
-
-    if(vx > -0.05 && vx < 0){
-      vy = 0;
-      vx = 0;
-      speed=0.01;
-    }
-    if(vy > -0.05 && vy < 0){
+    if(vy < 0.05 && vy > 0 && speed < 0.5){
       vy = 0;
       vx = 0;
       speed=0.01;
     }
 
-    if(vx == 0 || vy == 0){
+    if(vx > -0.05 && vx < 0 && speed < 0.5){
+      vy = 0;
+      vx = 0;
+      speed=0.01;
+    }
+    if(vy > -0.05 && vy < 0 && speed < 0.5){
+      vy = 0;
+      vx = 0;
+      speed=0.01;
+    }
+
+    if(vx == 0 || vy == 0 && speed < 0.5){
       start = false;
     }
 }
@@ -147,22 +156,26 @@ function checkBoundaries(){
       vx *= -1;
       vx *= friction;
       vy *= friction;
+      speed *= friction;
     } else if (ball.x - ball.radius < left) {
       ball.x = (left + ball.radius);
       vx *= -1;
       vx *= friction;
       vy *= friction;
+      speed *= friction;
     }
     if (ball.y + ball.radius > bottom) {
       ball.y = (bottom - ball.radius);
       vy *= -1;
       vx *= friction;
       vy *= friction;
+      speed *= friction;
     } else if (ball.y - ball.radius < top) {
       ball.y = (top + ball.radius);
       vy *= -1;
       vx *= friction;
       vy *= friction;
+      speed *= friction;
     }
 }
 
@@ -179,9 +192,11 @@ function boxCollision(){
           vy = vy-2*normal.y;
           
           if(Math.abs(vx)>5){
+            speed *= friction;
             vx *= friction;            
           }
           if(Math.abs(vy)>5){
+            speed *= friction;
             vy *= friction;
           }
         }
@@ -190,11 +205,11 @@ function boxCollision(){
 
 function bounces (box)
 {
-        // compute a center-to-center vector
+    // compute a center-to-center vector
     var half = { x: box.width/2, y: box.height/2 };
         var center = {
-            x: (ball.x) - (box.x+half.x),
-            y: (ball.y) - (box.y+half.y)};
+            x: (ball.x+vx) - (box.x+half.x),
+            y: (ball.y+vy) - (box.y+half.y)};
             
         // check circle position inside the rectangle quadrant
         var side = {
@@ -263,6 +278,7 @@ function OnMouseMove(e){
     drawBall(seta.x,seta.y);
     drawHole(hX,hY);
     boxes.forEach(drawBoxes);
+    drawText();
 }
 
 function OnMouseUp(){
@@ -356,36 +372,77 @@ function drawObjects(){
 }
 
 function createBoxes (level) {
-  var checkBoxOverlap;
+  
   for (i = 0; i < level; i++) { 
-    checkBoxOverlap = false;
     var box = new Box(Math.random() * 40 + 50, Math.random() * 40 + 50);
-    box.x = Math.random() * canvas.width;
-    box.y = Math.random() * canvas.height;
+    var acceptBox = false;
 
-    if(box.x <= canvas.width/2){
-      box.x += box.width;
-    }else{
-      box.x -= box.width;
-    }
+    while(!acceptBox){
+      box.x = Math.random() * canvas.width;
+      box.y = Math.random() * canvas.height;
 
-    if(box.y <= canvas.height/2){
-      box.y += box.height;
-    }else{
-      box.y -= box.height;
-    }
-
-    for(var j = 0;j<boxes.length-1;j++){
-      if(utils.intersects(box,boxes[j])){
-        if(checkBoxOverlap){
-          i = i-1;
-        }
+      if(box.x <= canvas.width/2){
+        box.x += box.width;
+      }else{
+        box.x -= box.width;
       }
-    } 
+
+      if(box.y <= canvas.height/2){
+        box.y += box.height;
+      }else{
+        box.y -= box.height;
+      }
+
+      acceptBox = checkBoxCircles(box,ball);
+      if(acceptBox){
+        acceptBox = checkBoxCircles(box,hole);
+      }
+      if(acceptBox){
+        acceptBox = checkBoxBoxes(box); 
+      }
+    }
 
     box.draw(context);
     boxes.push(box);
+
+    console.log('box.x:' + box.x);
+    console.log('box.y:' + box.y);
+
+    console.log('box.width:' + box.width);
+    console.log('box.height:' + box.height);
   }
+}
+
+
+function checkBoxCircles(box,circle){
+  var ret = true;
+
+  if(utils.containsPoint(box,circle.x+circle.radius,circle.y)){
+    ret = false;
+  }
+  if(utils.containsPoint(box,circle.x-circle.radius,circle.y)){
+    ret = false;
+  }
+  if(utils.containsPoint(box,circle.x,circle.y+circle.radius)){
+    ret = false;
+  }
+  if(utils.containsPoint(box,circle.x,circle.y-circle.radius)){
+    ret = false;
+  }
+
+  return ret;
+}
+
+function checkBoxBoxes(box){
+  var ret = true;
+
+  for(var j=0;j<boxes.length;j++){
+    if((box.x != boxes[j].x || box.y != boxes[j].y) && utils.intersects(box,boxes[j])){
+      ret = false;
+    }
+  }
+
+  return ret;
 }
 
 function drawBoxes (box) {
@@ -407,7 +464,5 @@ function drawHole(x,y){
 
 
 function drawText(){
-  context.strokeStyle='black';
-  context.font="18px Arial";
   context.fillText("Points: " + points + "%",5,canvas.height-5);
 }
