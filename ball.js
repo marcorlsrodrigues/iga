@@ -1,6 +1,7 @@
-function Ball (radius, color) {
+function Ball (radius, color,strokeColor) {
   if (radius === undefined) { radius = 6; }
   if (color === undefined) { color = "blue"; }
+  if (strokeColor === undefined) { strokeColor = "black"; }
   this.x = 0;
   this.y = 0;
   this.radius = radius;
