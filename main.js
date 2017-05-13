@@ -22,7 +22,9 @@ var canvas = document.getElementById('canvas'),
     lineForce = 1,
     lineForceStep = 1,
     shots = 0,
-    points = 0.0;
+    points = 0.0,
+    img = new Image();
+    img.src = 'success.jpeg';
 
 canvas.style.background = '#66ff66';
 
@@ -67,14 +69,14 @@ initialize();
               context.clearRect(0, 0, canvas.width, canvas.height);
               
               if(level+1 > 5){
-                level = 1;
-                points = 0;
-                shots = 0;
+
+                context.drawImage(img, 0,0,900,700);
+                canvas.addEventListener('mousedown', reinitialize, false);
               }else{
                 level += 1;
+                start=false;
+                initialize();
               }
-              start=false;
-              initialize();
             }else{
               context.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -114,6 +116,19 @@ function initialize(){
   drawText();
 }
 
+function reinitialize(){
+  level = 0;
+  points = 0;
+  shots = -1;
+  boxes = [];
+  canvas.removeEventListener('mousedown', reinitialize, false);
+  canvas.addEventListener('mousedown', start, false);
+}
+
+function start(){
+  start=false;
+  canvas.removeEventListener('mousedown', start, false);
+}
 
 function addMouseUpDown(){
   canvas.addEventListener('mousedown', OnMouseDown, false);
@@ -296,7 +311,12 @@ function OnMouseUp(){
     ball.color = '#b3b3b3';
 
     shots += 1;
-    points = (level/shots)*100;
+    if(shots>0 && level > 0){
+      points = (level/shots)*100;
+    }else{
+      points = 0;
+    }
+    
     console.log('level: '+level);
     console.log('shots: ' +shots);
 
